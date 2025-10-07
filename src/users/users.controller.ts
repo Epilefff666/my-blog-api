@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, ForbiddenException, Get, NotFoundException, Param, Post, Put, UnprocessableEntityException } from '@nestjs/common';
+import { CreateUserDto } from './user.dto';
 
 // Define the shape of a User object
 interface User {
@@ -38,7 +39,10 @@ export class UsersController {
   findUserById(@Param('id') id: string) {
     const user = this.users.find((user) => user.id === id);
     if (!user) {
-      return { error_message: 'User not found' };
+      throw new NotFoundException(`User with id ${id} not found`);
+    }
+    if (user.id === '1') {
+      throw new ForbiddenException('Access to this user is forbidden');
     }
     return user;
   }
@@ -56,7 +60,7 @@ export class UsersController {
    * }
    */
   @Post()
-  createUser(@Body() body: User) {
+  createUser(@Body() body: CreateUserDto) {
     this.users.push(body);
     // Return the newly added user for confirmation
     return this.users.find((user) => user.id === body.id);
@@ -96,7 +100,7 @@ export class UsersController {
 
     // If no user is found, return an error response
     if (!user) {
-      return { error_message: 'User not found' };
+      throw new NotFoundException(`User with id ${id} not found`);
     }
     // Filter out the user with the given ID, effectively "deleting" them
     this.users = this.users.filter((user) => user.id !== id);
@@ -113,6 +117,10 @@ export class UsersController {
       return { error_message: 'User not found' };
     }
     const currentData = this.users[position];
+    const email = changes?.email;
+    /* if (email && !email.includes('@')) {
+      throw new UnprocessableEntityException('Email is not valid');
+    } */
     const updatedUser = { ...currentData, ...changes };
     this.users[position] = updatedUser;
     return updatedUser;
