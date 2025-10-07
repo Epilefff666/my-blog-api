@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
 
 // Define the shape of a User object
 interface User {
@@ -104,5 +104,17 @@ export class UsersController {
       // Return a confirmation message
       message: 'User deleted successfully',
     };
+  }
+
+  @Put(':id')
+  updateUser(@Param('id') id: string, @Body() changes: User) {
+    const position = this.users.findIndex((user) => user.id === id);
+    if (position === -1) {
+      return { error_message: 'User not found' };
+    }
+    const currentData = this.users[position];
+    const updatedUser = { ...currentData, ...changes };
+    this.users[position] = updatedUser;
+    return updatedUser;
   }
 }
